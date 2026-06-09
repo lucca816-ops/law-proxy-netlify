@@ -4,3 +4,13 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/search-law"
+  to = "/.netlify/functions/search-law"
+  status = 200
+
+[[redirects]]
+  from = "/api/get-law-body"
+  to = "/.netlify/functions/get-law-body"
+  status = 200
