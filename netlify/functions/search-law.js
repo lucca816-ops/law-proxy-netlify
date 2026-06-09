@@ -1,4 +1,4 @@
-const LAW_BASE_URL = "https://www.law.go.kr/DRF/lawSearch.do";
+const LAW_BASE_URL = "http://www.law.go.kr/DRF/lawSearch.do";
 
 function jsonResponse(statusCode, data) {
   return {
