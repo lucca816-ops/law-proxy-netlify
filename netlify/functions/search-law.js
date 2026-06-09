@@ -61,13 +61,18 @@ exports.handler = async function(event) {
 
   const qs = event.queryStringParameters || {};
 
-  const target = qs.target;
-  const query = qs.query;
-  const type = qs.type || "JSON";
-  const display = qs.display || "10";
-  const page = qs.page || "1";
-  const nw = qs.nw || "1";
-  const search = qs.search || "1";
+  let target = qs.target;
+
+if (target === "eflaw") {
+  target = "law";
+}
+
+const query = qs.query;
+const type = qs.type || "JSON";
+const display = qs.display || "10";
+const page = qs.page || "1";
+const nw = qs.nw || "1";
+const search = qs.search || "1";
 
   if (!target || !query) {
     return jsonResponse(400, {
