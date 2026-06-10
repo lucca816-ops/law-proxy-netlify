@@ -82,13 +82,13 @@ const search = qs.search || "1";
     });
   }
 
-  if (!["eflaw", "admrul"].includes(target)) {
-    return jsonResponse(400, {
-      ok: false,
-      error: "Invalid target",
-      allowed: ["eflaw", "admrul"]
-    });
-  }
+if (!["law", "admrul"].includes(target)) {
+  return jsonResponse(400, {
+    ok: false,
+    error: "Invalid target",
+    allowed: ["law", "admrul"]
+  });
+}
 
   const params = new URLSearchParams();
   params.set("OC", lawOc);
