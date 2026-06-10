@@ -61,11 +61,13 @@ exports.handler = async function(event) {
 
   const qs = event.queryStringParameters || {};
 
-  let target = qs.target;
+let target = qs.target;
 
 if (target === "eflaw") {
   target = "law";
 }
+
+const query = qs.query;
 
 const query = qs.query;
 const type = qs.type || "JSON";
