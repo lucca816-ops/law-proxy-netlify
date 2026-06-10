@@ -61,20 +61,19 @@ exports.handler = async function(event) {
 
   const qs = event.queryStringParameters || {};
 
-let target = qs.target;
+  const originalTarget = qs.target;
+  let target = originalTarget;
 
-if (target === "eflaw") {
-  target = "law";
-}
+  if (target === "eflaw") {
+    target = "law";
+  }
 
-const query = qs.query;
-
-const query = qs.query;
-const type = qs.type || "JSON";
-const display = qs.display || "10";
-const page = qs.page || "1";
-const nw = qs.nw || "1";
-const search = qs.search || "1";
+  const query = qs.query;
+  const type = qs.type || "JSON";
+  const display = qs.display || "10";
+  const page = qs.page || "1";
+  const nw = qs.nw || "1";
+  const search = qs.search || "1";
 
   if (!target || !query) {
     return jsonResponse(400, {
@@ -84,13 +83,13 @@ const search = qs.search || "1";
     });
   }
 
-if (!["law", "admrul"].includes(target)) {
-  return jsonResponse(400, {
-    ok: false,
-    error: "Invalid target",
-    allowed: ["law", "admrul"]
-  });
-}
+  if (!["law", "admrul"].includes(target)) {
+    return jsonResponse(400, {
+      ok: false,
+      error: "Invalid target",
+      allowed: ["law", "admrul"]
+    });
+  }
 
   const params = new URLSearchParams();
   params.set("OC", lawOc);
@@ -120,9 +119,11 @@ if (!["law", "admrul"].includes(target)) {
 
     return jsonResponse(response.status, {
       ok: response.ok,
+      version: "search-law-v2",
       source: "law.go.kr",
       endpoint: "lawSearch.do",
       request: {
+        originalTarget,
         target,
         query,
         type,
@@ -136,8 +137,11 @@ if (!["law", "admrul"].includes(target)) {
   } catch (error) {
     return jsonResponse(500, {
       ok: false,
+      version: "search-law-v2",
       error: "Proxy request failed",
-      message: error.message
+      message: error.message,
+      name: error.name,
+      cause: error.cause ? String(error.cause) : null
     });
   }
 };
