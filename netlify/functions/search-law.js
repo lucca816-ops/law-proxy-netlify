@@ -1,4 +1,7 @@
-const LAW_BASE_URL = "http://www.law.go.kr/DRF/lawSearch.do";
+const http = require("http");
+
+const LAW_HOST = "www.law.go.kr";
+const LAW_PATH = "/DRF/lawSearch.do";
 
 function jsonResponse(statusCode, data) {
   return {
@@ -27,6 +30,53 @@ function checkProxyKey(event) {
   const queryKey = event.queryStringParameters?._key;
 
   return headerKey === expectedKey || queryKey === expectedKey;
+}
+
+function requestLawApi(params) {
+  return new Promise((resolve, reject) => {
+    const queryString = params.toString();
+
+    const options = {
+      hostname: LAW_HOST,
+      port: 80,
+      path: `${LAW_PATH}?${queryString}`,
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 Netlify-Law-Proxy",
+        "Accept": "application/json, text/plain, */*",
+        "Connection": "close"
+      },
+      timeout: 15000
+    };
+
+    const req = http.request(options, (res) => {
+      let body = "";
+
+      res.setEncoding("utf8");
+
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+
+      res.on("end", () => {
+        resolve({
+          statusCode: res.statusCode,
+          headers: res.headers,
+          body
+        });
+      });
+    });
+
+    req.on("timeout", () => {
+      req.destroy(new Error("Law API request timeout"));
+    });
+
+    req.on("error", (error) => {
+      reject(error);
+    });
+
+    req.end();
+  });
 }
 
 exports.handler = async function(event) {
@@ -104,11 +154,9 @@ exports.handler = async function(event) {
     params.set("search", search);
   }
 
-  const url = `${LAW_BASE_URL}?${params.toString()}`;
-
   try {
-    const response = await fetch(url);
-    const text = await response.text();
+    const response = await requestLawApi(params);
+    const text = response.body;
 
     let parsed;
     try {
@@ -117,9 +165,9 @@ exports.handler = async function(event) {
       parsed = { raw: text };
     }
 
-    return jsonResponse(response.status, {
-      ok: response.ok,
-      version: "search-law-v2",
+    return jsonResponse(response.statusCode || 200, {
+      ok: response.statusCode >= 200 && response.statusCode < 300,
+      version: "search-law-v3-http-module",
       source: "law.go.kr",
       endpoint: "lawSearch.do",
       request: {
@@ -137,10 +185,11 @@ exports.handler = async function(event) {
   } catch (error) {
     return jsonResponse(500, {
       ok: false,
-      version: "search-law-v2",
+      version: "search-law-v3-http-module",
       error: "Proxy request failed",
       message: error.message,
       name: error.name,
+      code: error.code || null,
       cause: error.cause ? String(error.cause) : null
     });
   }
